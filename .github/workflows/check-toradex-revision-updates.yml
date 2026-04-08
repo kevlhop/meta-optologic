@@ -1,0 +1,52 @@
+name: Yocto check Toradex manifest revision updates
+
+on:
+  schedule:
+      - cron: '0 10 * * 1' # Run every monday at 10:00 AM
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-yocto:
+    name: Build Toradex Yocto BSP
+    runs-on: [self-hosted, cqfd, fast]
+    env:
+      WORKSPACE: workspace-${{ github.run_id }}-yocto-revision-updates
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Prepare workspace
+        run: |
+            echo "Building in $(realpath ${WORKSPACE})"
+            mkdir -p "${WORKSPACE}"
+
+      - name: Checkout meta-optologic
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.WORKSPACE }}/meta-optologic
+
+      - name: Check for manifest revision updates
+        run: |
+            set +e 
+            ./meta-optologic/.github/scripts/check-toradex-revision-updates.sh
+            echo "exit_code=$?" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.WORKSPACE }}
+
+      - name: Open a pull request with the updated manifest
+        if: steps.check-for-manifest-revision-updates.outputs.exit_code == '2'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update Toradex manifest revision to the ${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}} version
+          title: Update Toradex manifest revision to the ${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}} version
+          body: This pull request updates the Toradex manifest revision to the ${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}} version.
+          path: ${{ env.WORKSPACE }}/meta-optologic
+
+      - name: Cleanup workspace
+        if: always()
+        run: |
+            rm -rf "${WORKSPACE}"
