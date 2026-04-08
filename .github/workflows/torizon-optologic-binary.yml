@@ -4,12 +4,6 @@ name: Torizon Optologic binary image generation
 # See: meta-optologic-tdx-nxp/recipes-kernel/linux/linux-toradex_6.6%.bbappend
 
 on:
-  push:
-    branches:
-      - scarthgap
-    tags:
-      - 'v*'
-      - 'torizon*'
   workflow_dispatch:
 
 permissions:

@@ -1,9 +1,6 @@
 name: Yocto Optologic Toradex CI
 
 on:
-  push:
-    branches:
-      - scarthgap
   pull_request:
   workflow_dispatch:
 
