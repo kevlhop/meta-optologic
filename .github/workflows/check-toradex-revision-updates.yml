@@ -11,7 +11,7 @@ permissions:
 jobs:
   check-manifest-revision-updates:
     name: Check for manifest revision updates
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     env:
       WORKSPACE: workspace-${{ github.run_id }}-yocto-revision-updates
     defaults:
@@ -47,7 +47,7 @@ jobs:
         uses: juliangruber/find-pull-request-action@v1
         with:
             state: closed
-            branch: toradex-manifest-update/${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}}
+            branch: toradex-manifest-update/${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}}2
 
       - name: Open a pull request with the updated manifest
         if: steps.check-for-manifest-revision-updates.outputs.exit_code == '2' && steps.find-pull-request.outputs.matching-pr-count == 0
@@ -59,7 +59,7 @@ jobs:
             title: Update Toradex manifest revision to the ${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}} version
             body: This pull request updates the Toradex manifest revision to the ${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}} version.
             path: ${{ env.WORKSPACE }}/meta-optologic
-            branch: toradex-manifest-update/${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}}
+            branch: toradex-manifest-update/${{steps.check-for-manifest-revision-updates.outputs.latest_stable_tag}}2
             signoff: true
 
       - name: Output pull request details
