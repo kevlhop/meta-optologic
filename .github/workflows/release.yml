@@ -39,7 +39,6 @@ jobs:
             exit 0
           fi
 
-          #To be tested
           commits=$(git rev-list ${{ steps.latest_tag.outputs.latest_tag }}..HEAD --count)
 
           if [ "$commits" -eq 0 ]; then
