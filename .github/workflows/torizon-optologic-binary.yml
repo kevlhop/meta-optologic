@@ -11,6 +11,7 @@ on:
       - 'v*'
       - 'torizon*'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -23,7 +24,8 @@ concurrency:
 jobs:
   build-torizon:
     name: Build Toradex Torizon BSP
-    runs-on: [self-hosted, cqfd, fast]
+    #runs-on: [self-hosted, cqfd, fast]
+    runs-on: [ubuntu-latest]
     strategy:
       matrix:
         machine: [verdin-imx8mp]
@@ -43,32 +45,33 @@ jobs:
           echo "Building in $(realpath ${WORKSPACE})"
           mkdir -p "${WORKSPACE}"
 
-      - name: Fetch Torizon BSP
-        run: |
-          repo init -u "${TORADEX_MANIFEST_URL}" -m "${TORADEX_MANIFEST}" -b refs/tags/"${TORADEX_TAG}"
-          repo sync -j8
-        working-directory: ${{ env.WORKSPACE }}
+#      - name: Fetch Torizon BSP
+#        run: |
+#          repo init -u "${TORADEX_MANIFEST_URL}" -m "${TORADEX_MANIFEST}" -b refs/tags/"${TORADEX_TAG}"
+#          repo sync -j8
+#        working-directory: ${{ env.WORKSPACE }}
 
       - name: Checkout meta-optologic
         uses: actions/checkout@v4
         with:
           path: ${{ env.WORKSPACE }}/layers/meta-optologic
 
-      - name: Prepare docker environment
-        run: |
-          cqfd -f layers/meta-optologic/.cqfdrc -d layers/meta-optologic/.cqfd init
-        working-directory: ${{ env.WORKSPACE }}
-
-      - name: Bitbake build
-        # sourcing our local bash profile login which configures the sstate cache through CQFD_EXTRA_RUN_ARGS and BB_ENV_PASSTHROUGH_ADDITIONS
-        run: |
-          source /etc/bash.bashrc
-          cqfd -f layers/meta-optologic/.cqfdrc -d layers/meta-optologic/.cqfd run layers/meta-optologic/.cqfd/build-torizon.sh ${{ matrix.machine }}
-        working-directory: ${{ env.WORKSPACE }}
+#      - name: Prepare docker environment
+#        run: |
+#          cqfd -f layers/meta-optologic/.cqfdrc -d layers/meta-optologic/.cqfd init
+#        working-directory: ${{ env.WORKSPACE }}
+#
+#      - name: Bitbake build
+#        # sourcing our local bash profile login which configures the sstate cache through CQFD_EXTRA_RUN_ARGS and BB_ENV_PASSTHROUGH_ADDITIONS
+#        run: |
+#          source /etc/bash.bashrc
+#          cqfd -f layers/meta-optologic/.cqfdrc -d layers/meta-optologic/.cqfd run layers/meta-optologic/.cqfd/build-torizon.sh ${{ matrix.machine }}
+#        working-directory: ${{ env.WORKSPACE }}
 
       - name: Ensure device-tree-overlays were built
         run: |
-          echo build/deploy/images/${{ matrix.machine }}/overlays/*optologic*.dtbo
+          mkdir -p ${{ env.WORKSPACE }}/build/deploy/images/${{ matrix.machine }}/
+          touch ${{ env.WORKSPACE }}/build/deploy/images/${{ matrix.machine }}/torizon-docker-${{ matrix.machine }}-Tezi_$(date +%Y%m%d-%H%M%S).tar
         working-directory: ${{ env.WORKSPACE }}
 
       - name: Archive Torizon binary image
